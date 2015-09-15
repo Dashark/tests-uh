@@ -168,7 +168,7 @@ main (int argc, char **argv)
 	  
 	  else
 	    B_matrix_displacement = B_matrix_displacement - blocksize;
-	}
+		}
     }
   shmem_barrier_all ();
   tv[1] = gettime ();
