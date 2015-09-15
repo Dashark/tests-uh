@@ -1,26 +1,31 @@
 !
 !
-! Copyright (c) 2011, 2012
-!   University of Houston System and Oak Ridge National Laboratory.
-! 
+! Copyright (c) 2011 - 2015
+!   University of Houston System and UT-Battelle, LLC.
+! Copyright (c) 2009 - 2015
+!   Silicon Graphics International Corp.  SHMEM is copyrighted
+!   by Silicon Graphics International Corp. (SGI) The OpenSHMEM API
+!   (shmem) is released by Open Source Software Solutions, Inc., under an
+!   agreement with Silicon Graphics International Corp. (SGI).
+!
 ! All rights reserved.
-! 
+!
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions
 ! are met:
-! 
+!
 ! o Redistributions of source code must retain the above copyright notice,
 !   this list of conditions and the following disclaimer.
-! 
+!
 ! o Redistributions in binary form must reproduce the above copyright
 !   notice, this list of conditions and the following disclaimer in the
 !   documentation and/or other materials provided with the distribution.
-! 
-! o Neither the name of the University of Houston System, Oak Ridge
-!   National Laboratory nor the names of its contributors may be used to
-!   endorse or promote products derived from this software without specific
-!   prior written permission.
-! 
+!
+! o Neither the name of the University of Houston System, UT-Battelle, LLC
+!   nor the names of its contributors may be used to endorse or promote
+!   products derived from this software without specific prior written
+!   permission.
+!
 ! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ! "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 ! LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -45,25 +50,25 @@ program test_shmem_synchronization
   integer         :: i
 
 ! Function definitions
-  integer    :: my_pe, num_pes
+  integer    :: shmem_my_pe, shmem_n_pes
 
   src = 9
 
-  call start_pes(0)
-  me   = my_pe()
-  npes = num_pes()
-  
+  call shmem_init()
+  me   = shmem_my_pe()
+  npes = shmem_n_pes()
+
   if(npes .gt. 1) then
-  
+
     dest = 9
-  
+
     call shmem_barrier_all()
-  
+
     if (me .eq. 0) then
       do i = 1, 4, 1
         call shmem_integer_put(dest, src, 1, 1);
       end do
-  
+
       do i = 1, 10, 1
         src = get_random_number()
         call shmem_integer_put(dest, src, 1, 1)
@@ -72,43 +77,43 @@ program test_shmem_synchronization
         end if
       end do
     end if
-  
+
     call shmem_barrier_all()
-  
+
     if (me .eq. 1) then
       call shmem_int8_wait(dest, 9)
       write(*,*) "Test for conditional wait: Passed"
     end if
-  
+
     call shmem_barrier_all()
-    
+
     dest = 9
     call shmem_barrier_all()
-  
+
     if (me .eq. 0) then
       do i = 1, 4, 1
         src = 9
         call shmem_integer_put(dest, src, 1, 1)
       end do
-  
+
       do i = 1, 10, 1
         src = mod(get_random_number(), 10)
         call shmem_integer_put(dest, src, 1, 1)
         if (src .ne. 9) then
           exit
         end if
-      end do 
+      end do
     end if
-  
+
     call shmem_barrier_all()
-  
+
     if (me .eq. 1) then
       call shmem_int8_wait_until(dest, SHMEM_CMP_NE, 9)
       write (*,*) "Test for explicit conditional wait: Passed"
     end if
-  
+
     call shmem_barrier_all()
-    
+
   else
     write(*,*) "Test for conditional wait requires more than 1 PE, test skipped"
   end if
@@ -142,5 +147,7 @@ contains
 
     deallocate(seed)
   end subroutine
+
+  call shmem_finalize()
 
 end program test_shmem_synchronization

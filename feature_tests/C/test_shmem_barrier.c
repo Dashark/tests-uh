@@ -1,26 +1,31 @@
 /*
  *
- * Copyright (c) 2011, 2012
- *   University of Houston System and Oak Ridge National Laboratory.
- * 
+ * Copyright (c) 2011 - 2015
+ *   University of Houston System and UT-Battelle, LLC.
+ * Copyright (c) 2009 - 2015
+ *   Silicon Graphics International Corp.  SHMEM is copyrighted
+ *   by Silicon Graphics International Corp. (SGI) The OpenSHMEM API
+ *   (shmem) is released by Open Source Software Solutions, Inc., under an
+ *   agreement with Silicon Graphics International Corp. (SGI).
+ *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- * 
+ *
  * o Redistributions of source code must retain the above copyright notice,
  *   this list of conditions and the following disclaimer.
- * 
+ *
  * o Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
- * o Neither the name of the University of Houston System, Oak Ridge
- *   National Laboratory nor the names of its contributors may be used to
- *   endorse or promote products derived from this software without specific
- *   prior written permission.
- * 
+ *
+ * o Neither the name of the University of Houston System, UT-Battelle, LLC
+ *   nor the names of its contributors may be used to endorse or promote
+ *   products derived from this software without specific prior written
+ *   permission.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -36,7 +41,9 @@
  */
 
 
-/*Tests shmem_barrier call*/
+/*
+ * Tests shmem_barrier call
+ */
 
 #include <stdio.h>
 
@@ -47,53 +54,56 @@ long pSync[_SHMEM_BCAST_SYNC_SIZE];
 int x = 10101;
 
 int
-main()
+main ()
 {
-  int me, npes;
-  int i;
+    int me, npes;
+    int i;
 
-  start_pes(0);
-  me = _my_pe();
-  npes = _num_pes();
+    shmem_init ();
+    me = shmem_my_pe ();
+    npes = shmem_n_pes ();
 
-  for (i = 0; i < _SHMEM_BCAST_SYNC_SIZE; i += 1) {
-    pSync[i] = _SHMEM_SYNC_VALUE;
-  }
-
-  if(npes > 1){
-
-    shmem_int_p(&x, 4, (me+1)%npes);
-
-    shmem_barrier_all();
-
-    if(me==npes-1){
-      if(x==4)
-        printf("Test shmem_barrier_all: Passed\n");
-      else
-        printf("Test shmem_barrier_all: Failed\n");
-    } 
-
-    x=-9;
-    shmem_barrier_all();
-
-    if(me==0||me==1){
-
-      if(me==0)
-        shmem_int_p(&x, 4, 1);
-
-      shmem_barrier(0, 0, 2, pSync);
-
-      if(me==1){
-        if(x==4)
-          printf("Test shmem_barrier: Passed\n");
-        else
-          printf("Test shmem_barrier: Failed\n");
-      } 
+    for (i = 0; i < _SHMEM_BCAST_SYNC_SIZE; i += 1) {
+        pSync[i] = _SHMEM_SYNC_VALUE;
     }
-  }
-  else{
-    printf("Number of PEs must be > 1 to test barrier, test skipped\n");
 
-  }  
-  return 0;
+    if (npes > 1) {
+
+        shmem_int_p (&x, 4, (me + 1) % npes);
+
+        shmem_barrier_all ();
+
+        if (me == npes - 1) {
+            if (x == 4)
+                printf ("Test shmem_barrier_all: Passed\n");
+            else
+                printf ("Test shmem_barrier_all: Failed\n");
+        }
+
+        x = -9;
+        shmem_barrier_all ();
+
+        if (me == 0 || me == 1) {
+
+            if (me == 0)
+                shmem_int_p (&x, 4, 1);
+
+            shmem_barrier (0, 0, 2, pSync);
+
+            if (me == 1) {
+                if (x == 4)
+                    printf ("Test shmem_barrier: Passed\n");
+                else
+                    printf ("Test shmem_barrier: Failed\n");
+            }
+        }
+    }
+    else {
+        printf ("Number of PEs must be > 1 to test barrier, test skipped\n");
+
+    }
+
+    shmem_finalize ();
+
+    return 0;
 }
